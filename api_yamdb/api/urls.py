@@ -1,22 +1,21 @@
-from django.urls import path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+# from rest_framework_simplejwt.views import (
+#     # TokenObtainPairView,
+#     TokenRefreshView,
+# )
 
-from .views import SignupView
+from .views import SingupViewSet, TokenViewSet
+
+router = DefaultRouter()
+router.register(
+    'auth/token', TokenViewSet, basename='Token'
+)
+router.register(
+    'auth/signup', SingupViewSet, basename='signup'
+)
 
 
 urlpatterns = [
-    path('auth/signup/', SignupView.as_view(), name='signup'),
-    path(
-        'auth/token/',
-        TokenObtainPairView.as_view(),
-        name='token_obtain_pair'
-    ),
-    path(
-        'auth/token/refresh/',
-        TokenRefreshView.as_view(),
-        name='token_refresh'
-    ),
+    path('', include(router.urls)),
 ]

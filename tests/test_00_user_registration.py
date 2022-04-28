@@ -5,6 +5,7 @@ from django.core import mail
 User = get_user_model()
 
 
+@pytest.mark.user_auth
 class Test00UserRegistration:
     url_signup = '/api/v1/auth/signup/'
     url_token = '/api/v1/auth/token/'
