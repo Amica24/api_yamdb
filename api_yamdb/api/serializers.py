@@ -27,6 +27,12 @@ class SignupSerializer(serializers.Serializer):
             'email',
         )
 
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Никнейм "me" запрещен.')
+        return value
+
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField()

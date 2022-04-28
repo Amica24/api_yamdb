@@ -47,7 +47,6 @@ class User(AbstractUser):
     )
     confirmation_code = models.CharField(
         max_length=256,
-        unique=True,
         blank=True,
         verbose_name='confirmation_code'
     )
