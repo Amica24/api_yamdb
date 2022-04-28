@@ -1,11 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-# from rest_framework_simplejwt.views import (
-#     # TokenObtainPairView,
-#     TokenRefreshView,
-# )
 
-from .views import SingupViewSet, TokenViewSet
+from .views import (
+    SingupViewSet, TokenViewSet,
+    UserViewSet
+)
 
 router = DefaultRouter()
 router.register(
@@ -13,6 +12,9 @@ router.register(
 )
 router.register(
     'auth/signup', SingupViewSet, basename='signup'
+)
+router.register(
+    'users', UserViewSet, basename='user_view'
 )
 
 

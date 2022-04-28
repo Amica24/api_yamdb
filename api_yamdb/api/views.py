@@ -2,17 +2,50 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework import status, viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
+from .permissions import IsAdmin
 from reviews.models import User
 from .serializers import (
     SignupSerializer,
     TokenSerializer,
+    UserSerializer,
 )
 
 code_test = PasswordResetTokenGenerator()
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    querryset = User.objects.all()
+    permission_classes = (IsAuthenticated, IsAdmin)
+    serializer_class = UserSerializer
+    search_fields = ('username')
+
+    @action(detail=False)
+    def user_func(self, request):
+        user = get_object_or_404(User, username=request.user.username)
+
+        if request.method != 'PATCH':
+            serializer = self.get_serializer(user)
+            return Response(serializer.data)
+        serializer = UserSerializer(
+            user,
+            context={'request': request},
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        if self.request.user.is_superuser:
+            serializer.save()
+        else:
+            serializer.save(role=user.role)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
 
 
 class SingupViewSet(viewsets.ModelViewSet):
