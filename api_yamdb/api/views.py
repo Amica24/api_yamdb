@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework_simplejwt.tokens import AccessToken
 
 from .permissions import IsAdmin
@@ -22,7 +21,6 @@ code_test = PasswordResetTokenGenerator()
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    # pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, IsAdmin)
     serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend,)
