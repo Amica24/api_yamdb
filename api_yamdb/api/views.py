@@ -22,7 +22,7 @@ code_test = PasswordResetTokenGenerator()
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    pagination_class = LimitOffsetPagination
+    # pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated, IsAdmin)
     serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend,)
