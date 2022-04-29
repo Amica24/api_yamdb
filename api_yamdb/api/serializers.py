@@ -2,20 +2,22 @@ import datetime as dt
 
 from rest_framework import serializers
 
-from reviews.models import Categories, Genres, Titles
+from reviews.models import Categories, Genres, Titles, GenreTitle
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
         model = Categories
 
 
 class GenresSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
+        lookup_field = 'slug'
         model = Genres
 
 
@@ -25,10 +27,22 @@ def validate_year(value):
     return value
 
 
+class TitlesGetSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(required=False)
+    year = serializers.IntegerField(validators=[validate_year])
+    genre = GenresSerializer(many=True)
+    category = CategoriesSerializer()
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        model = Titles
+
+
 class TitlesSerializer(serializers.ModelSerializer):
-    description = serializers.StringRelatedField(required=False)
+    description = serializers.CharField(required=False)
     year = serializers.IntegerField(validators=[validate_year])
     genre = serializers.SlugRelatedField(
+        many=True,
         slug_field='name',
         queryset=Genres.objects.all()
     )
@@ -38,5 +52,6 @@ class TitlesSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Titles
+
