@@ -5,12 +5,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
+    'reviews.apps.ReviewsConfig',
+    'api.apps.ApiConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -20,8 +22,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
-    'api',
-    'reviews',
 ]
 
 MIDDLEWARE = [
@@ -115,7 +115,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=14),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-
 
 # Email
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'

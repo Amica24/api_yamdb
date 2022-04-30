@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 from .common import auth_client, create_users_api
 
+
 @pytest.mark.user_auth
 class Test01UserAPI:
 
