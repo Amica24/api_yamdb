@@ -20,7 +20,7 @@ class CategoriesViewSet(ListCreateDestroyViewSet):
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
     ]
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
@@ -32,7 +32,7 @@ class GenresViewSet(ListCreateDestroyViewSet):
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
     ]
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
