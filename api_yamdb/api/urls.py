@@ -25,7 +25,7 @@ router.register(
   r'genres', GenresViewSet
 )
 router.register(
-  r'titles', TitlesViewSet
+  r'titles', TitlesViewSet, basename='titles'
 )
 
 urlpatterns = [
