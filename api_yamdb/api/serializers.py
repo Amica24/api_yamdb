@@ -52,7 +52,10 @@ class TokenSerializer(serializers.Serializer):
 class CategoriesSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('name', 'slug')
+        fields = (
+            'name',
+            'slug'
+        )
         lookup_field = 'slug'
         model = Categories
 
@@ -79,7 +82,7 @@ def validate_year(value):
 class TitlesGetSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False)
     year = serializers.IntegerField(validators=[validate_year])
-    genre = GenresSerializer(many=True)
+    genre = GenresSerializer(many=True, read_only=True)
     category = CategoriesSerializer()
 
     class Meta:
@@ -99,11 +102,11 @@ class TitlesSerializer(serializers.ModelSerializer):
     year = serializers.IntegerField(validators=[validate_year])
     genre = serializers.SlugRelatedField(
         many=True,
-        slug_field='name',
+        slug_field='slug',
         queryset=Genres.objects.all()
     )
     category = serializers.SlugRelatedField(
-        slug_field='name',
+        slug_field='slug',
         queryset=Categories.objects.all()
     )
 

@@ -155,8 +155,8 @@ class TitlesViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
     ]
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['category__slug', 'genre__slug', 'name', 'year']
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
