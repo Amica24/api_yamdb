@@ -129,11 +129,11 @@ class Review(models.Model):
     def __str__(self):
         return self.text
 
- #   class Meta:
-  #      constraints = [models.UniqueConstraint(
-   #         fields=['title', 'author'],
-    #        name='unique_review',
-     #   )]
+#     class Meta:
+#         constraints = [models.UniqueConstraint(
+#             fields=['title', 'author'],
+#             name='unique_review',
+#         )]
 
 
 class Comment(models.Model):

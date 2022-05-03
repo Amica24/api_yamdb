@@ -1,8 +1,8 @@
 import datetime as dt
 
 from rest_framework import serializers
-from django.shortcuts import get_object_or_404
-from rest_framework.validators import UniqueTogetherValidator
+# from django.shortcuts import get_object_or_404
+# from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Categories, Genres, Titles, User, Comment, Review
 
@@ -128,15 +128,14 @@ class TitlesSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        many=False,
+        slug_field='username',
         read_only=True,
-        slug_field='username'
+        default=serializers.CurrentUserDefault()
     )
 
     class Meta:
         model = Comment
-        fields = '__all__'
-        read_only_fields = ('id', 'review', 'pub_date', 'author')
+        fields = ('id', 'text', 'author', 'pub_date')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -161,18 +160,18 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate_author(self, value):
         title_id = self.context['view'].kwargs.get('title_id')
-        title = get_object_or_404(Titles, id=title_id)
-        reviews = title.reviews
-        if reviews.objects.exists():
+        # author = self.context.get('request').user
+        # title = get_object_or_404(Titles, id=title_id)
+        title = Titles.objects.filter(id=title_id)
+        if title.reviews.objects.exists():
             raise serializers.ValidationError(
                 'Вы уже оставляли отзыв. До новых встреч.'
             )
         return value
 
-
 #    def validate_following(self, value):
- #       if value == self.context.get('request').user:
-  #          raise serializers.ValidationError(
-   #             'Нельзя подписываться на самого себя'
-    #        )
-     #   return value
+#        if value == self.context.get('request').user:
+#            raise serializers.ValidationError(
+#                'Нельзя подписываться на самого себя'
+#            )
+#        return value
