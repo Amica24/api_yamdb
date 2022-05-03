@@ -7,6 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django.db.models import Avg
 
 from reviews.models import Categories, Genres, Titles, User
 from .permissions import (
@@ -154,7 +155,9 @@ class GenresViewSet(ListCreateDestroyViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Titles.objects.all().annotate(
+        Avg("reviews__score")
+    ).order_by("name")
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
@@ -189,11 +192,26 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (
-        OwnerOrReadOnly,
-   #     IsModerator,
-    )
-    #permission_classes = (AllowAny,)
+#    permission_classes = (
+ #       OwnerOrReadOnly,
+  #      IsModerator,
+   # )
+    permission_classes = (AllowAny, OwnerOrReadOnly, IsModerator,)
+
+    def get_permissions(self):
+        # Если в GET-запросе требуется получить информацию об объекте
+        if self.action == ('retrieve' or 'list'):
+            return (permissions.AllowAny(),)
+ #       #if self.action == ('retrieve' or 'list'):
+ #       #    return (permissions.IsAuthenticatedOrReadOnly(),)
+ #       elif self.action == ('create'):
+ #           return (permissions.IsAuthenticatedOrReadOnly(), IsModerator(),)
+        elif self.action == ('update' or 'partial_update' or 'destroy'):
+            return (OwnerOrReadOnly(), IsModerator(),)
+ #       elif self.action == ('create' or 'update' or 'partial_update' or 'destroy'):
+ #           return (permissions.IsAuthenticatedOrReadOnly(),)
+        # Для остальных ситуаций оставим текущий перечень пермишенов без изменений
+        return super().get_permissions()
 
     def get_queryset(self):
         title = get_object_or_404(Titles, pk=self.kwargs.get('title_id'))
