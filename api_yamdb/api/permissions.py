@@ -32,18 +32,18 @@ class ReviewComment(permissions.BasePermission):
         if view.action in ['list', 'retrieve']:
             return True
         elif view.action == 'create':
-            possible_options = (
+            allowed = (
                 request.user.is_authenticated,
                 request.user.is_admin,
                 request.user.is_moderator,
             )
-            return any(possible_options)
+            return any(allowed)
         elif view.action in ['update', 'partial_update', 'destroy']:
-            possible_options = (
+            allowed = (
                 obj.author == request.user,
                 request.user.is_admin,
                 request.user.is_moderator,
             )
-            return any(possible_options)
+            return any(allowed)
         else:
             return False

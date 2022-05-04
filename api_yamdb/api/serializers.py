@@ -1,8 +1,7 @@
 import datetime as dt
 
-from rest_framework import serializers
-# from django.shortcuts import get_object_or_404
-# from rest_framework.validators import UniqueTogetherValidator
+from rest_framework import serializers, exceptions
+from django.shortcuts import get_object_or_404
 
 from reviews.models import Categories, Genres, Titles, User, Comment, Review
 
@@ -158,20 +157,12 @@ class ReviewSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate_author(self, value):
+    def validate(self, data):
         title_id = self.context['view'].kwargs.get('title_id')
-        # author = self.context.get('request').user
-        # title = get_object_or_404(Titles, id=title_id)
-        title = Titles.objects.filter(id=title_id)
-        if title.reviews.objects.exists():
+        author = self.context.get('request').user
+        title = get_object_or_404(Titles, id=title_id)
+        if title.reviews.filter(author=author).exists() and self.context.get('request').method != 'PATCH':
             raise serializers.ValidationError(
-                'Вы уже оставляли отзыв. До новых встреч.'
+                'Вы уже оставляли здесь отзыв. До новых встреч.'
             )
-        return value
-
-#    def validate_following(self, value):
-#        if value == self.context.get('request').user:
-#            raise serializers.ValidationError(
-#                'Нельзя подписываться на самого себя'
-#            )
-#        return value
+        return data
