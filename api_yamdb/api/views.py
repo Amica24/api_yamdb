@@ -28,7 +28,10 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     lookup_field = 'username'
 
-    @action(detail=False, methods=('GET', 'PATCH'))
+    @action(
+        detail=False, methods=('GET', 'PATCH'),
+        url_path = 'me', permission_classes=(IsAuthenticated,)
+    )
     def user_func(self, request):
         user = get_object_or_404(User, username=request.user.username)
 
