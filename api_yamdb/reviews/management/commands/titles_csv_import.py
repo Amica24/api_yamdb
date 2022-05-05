@@ -3,7 +3,7 @@ import os
 from csv import DictReader
 from django.core.management import BaseCommand
 
-from reviews.models import Title, Category
+from reviews.models import Title
 
 
 class Command(BaseCommand):
