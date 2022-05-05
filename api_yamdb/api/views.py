@@ -7,13 +7,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from django.db.models import Avg
+from rest_framework.exceptions import MethodNotAllowed
 
-from reviews.models import Categories, Genres, Titles, User
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from reviews.models import Categories, Genres, Titles, User, Comment, Review
+from .permissions import (
+    IsAdmin, IsAdminOrReadOnly, ReviewComment
+)
 from .serializers import (
-  CategoriesSerializer, GenresSerializer, SignupSerializer, 
-  TitlesGetSerializer, TitlesSerializer, TokenSerializer, 
-  UserSerializer
+    CategoriesSerializer, GenresSerializer, SignupSerializer,
+    TitlesGetSerializer, TitlesSerializer, TokenSerializer,
+    UserSerializer, CommentSerializer, ReviewSerializer,
 )
 
 
@@ -121,10 +125,12 @@ class TokenViewSet(viewsets.ModelViewSet):
         return Response({'token': f'{token}'}, status=status.HTTP_200_OK)
 
 
-class ListCreateDestroyViewSet(mixins.ListModelMixin,
-                               mixins.CreateModelMixin,
-                               mixins.DestroyModelMixin,
-                               viewsets.GenericViewSet):
+class ListCreateDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
     pass
 
 
@@ -159,7 +165,9 @@ class TitlesViewSet(viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        queryset = Titles.objects.all()
+        queryset = Titles.objects.all().annotate(
+            Avg("reviews__score")
+        ).order_by("name")
         genre_slug = self.request.query_params.get('genre')
         category_slug = self.request.query_params.get('category')
         name = self.request.query_params.get('name')
@@ -179,3 +187,42 @@ class TitlesViewSet(viewsets.ModelViewSet):
             return TitlesGetSerializer
         else:
             return TitlesSerializer
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = (ReviewComment,)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Titles, id=title_id)
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title)
+        return Comment.objects.filter(review_id=review.id)
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Titles, id=title_id)
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title)
+        serializer.save(author=self.request.user, review_id=review.id)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = (ReviewComment,)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Titles, id=title_id)
+        return Review.objects.filter(title_id=title.id)
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Titles, id=title_id)
+        serializer.save(author=self.request.user, title_id=title.id)
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            raise MethodNotAllowed(method='PUT')
+        return super().update(request, *args, **kwargs)
