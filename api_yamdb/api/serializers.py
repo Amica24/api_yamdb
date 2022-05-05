@@ -1,6 +1,6 @@
 import datetime as dt
 
-from rest_framework import serializers, exceptions
+from rest_framework import serializers
 from django.shortcuts import get_object_or_404
 
 from reviews.models import Categories, Genres, Titles, User, Comment, Review
@@ -161,7 +161,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context['view'].kwargs.get('title_id')
         author = self.context.get('request').user
         title = get_object_or_404(Titles, id=title_id)
-        if title.reviews.filter(author=author).exists() and self.context.get('request').method == 'POST':
+        if title.reviews.filter(author=author).exists() and (
+            self.context.get('request').method == 'POST'
+        ):
             raise serializers.ValidationError(
                 'Вы уже оставляли здесь отзыв. До новых встреч.'
             )

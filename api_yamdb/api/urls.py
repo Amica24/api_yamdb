@@ -26,7 +26,7 @@ router.register(
     r'genres', GenresViewSet
 )
 router.register(
-    r'titles', TitlesViewSet
+    r'titles', TitlesViewSet, basename='titles'
 )
 router.register(
     r'titles/(?P<title_id>\d+)/reviews',
