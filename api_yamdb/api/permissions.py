@@ -17,33 +17,57 @@ class IsAdmin(permissions.BasePermission):
 
 
 class ReviewComment(permissions.BasePermission):
+
     def has_permission(self, request, view):
-        if view.action in ['list', 'retrieve']:
-            return True
-        elif view.action in ['create', 'update', 'partial_update', 'destroy']:
-            if not request.user.is_authenticated:
-                return False
-            else:
-                return True
-        else:
-            return False
+        return (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated)
 
     def has_object_permission(self, request, view, obj):
-        if view.action in ['list', 'retrieve']:
+        if request.method in permissions.SAFE_METHODS:
             return True
-        elif view.action == 'create':
+        if request.method == 'create':
             allowed = (
                 request.user.is_authenticated,
                 request.user.is_admin,
                 request.user.is_moderator,
             )
             return any(allowed)
-        elif view.action in ['update', 'partial_update', 'destroy']:
+        if request.user.is_authenticated:
             allowed = (
                 obj.author == request.user,
                 request.user.is_admin,
                 request.user.is_moderator,
             )
             return any(allowed)
-        else:
-            return False
+        return False
+
+    # def has_permission(self, request, view):
+    #     if view.action in ['list', 'retrieve']:
+    #         return True
+    #     elif view.action in ['create', 'update', 'partial_update', 'destroy']:
+    #         if not request.user.is_authenticated:
+    #             return False
+    #         else:
+    #             return True
+    #     else:
+    #         return False
+
+    # def has_object_permission(self, request, view, obj):
+    #     if view.action in ['list', 'retrieve']:
+    #         return True
+    #     elif view.action == 'create':
+    #         allowed = (
+    #             request.user.is_authenticated,
+    #             request.user.is_admin,
+    #             request.user.is_moderator,
+    #         )
+    #         return any(allowed)
+    #     elif view.action in ['update', 'partial_update', 'destroy']:
+    #         allowed = (
+    #             obj.author == request.user,
+    #             request.user.is_admin,
+    #             request.user.is_moderator,
+    #         )
+    #         return any(allowed)
+    #     else:
+    #         return False

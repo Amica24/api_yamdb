@@ -155,15 +155,28 @@ class GenresViewSet(ListCreateDestroyViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all().annotate(
-        Avg("reviews__score")
-    ).order_by("name")
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
     ]
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+
+    def get_queryset(self):
+        queryset = Titles.objects.all().annotate(
+            Avg("reviews__score")
+        ).order_by("name")
+        genre_slug = self.request.query_params.get('genre')
+        category_slug = self.request.query_params.get('category')
+        name = self.request.query_params.get('name')
+        year = self.request.query_params.get('year')
+        if genre_slug is not None:
+            queryset = queryset.filter(genre__slug=genre_slug)
+        elif category_slug is not None:
+            queryset = queryset.filter(category__slug=category_slug)
+        elif name is not None:
+            queryset = queryset.filter(name__contains=name)
+        elif year is not None:
+            queryset = queryset.filter(year=year)
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
