@@ -3,17 +3,17 @@ import os
 from csv import DictReader
 from django.core.management import BaseCommand
 
-from reviews.models import Titles, Categories
+from reviews.models import Title, Category
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        if Titles.objects.exists():
-            print('Titles data already loaded...exiting.')
+        if Title.objects.exists():
+            print('Title data already loaded...exiting.')
             return
 
-        print('Loading Titles data')
+        print('Loading Title data')
 
         path = os.path.join(
             os.path.dirname(__file__),
@@ -22,7 +22,7 @@ class Command(BaseCommand):
             'titles.csv'
         )
         for row in DictReader(open(path)):
-            title = Titles(
+            title = Title(
                 pk=row['id'],
                 name=row['name'],
                 year=row['year'],

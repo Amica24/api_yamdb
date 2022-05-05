@@ -67,7 +67,7 @@ class User(AbstractUser):
         return self.role == USER
 
 
-class Categories(models.Model):
+class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True, max_length=50)
 
@@ -75,7 +75,7 @@ class Categories(models.Model):
         return self.name
 
 
-class Genres(models.Model):
+class Genre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(unique=True, max_length=50)
 
@@ -83,13 +83,13 @@ class Genres(models.Model):
         return self.name
 
 
-class Titles(models.Model):
+class Title(models.Model):
     name = models.CharField('Название', max_length=256)
     year = models.IntegerField('Год выпуска')
     description = models.TextField('Описание', blank=True)
-    genre = models.ManyToManyField(Genres, through='GenreTitle')
+    genre = models.ManyToManyField(Genre, through='GenreTitle')
     category = models.ForeignKey(
-        Categories,
+        Category,
         related_name='title',
         on_delete=models.SET_DEFAULT,
         default='Категория не указана',
@@ -101,11 +101,11 @@ class Titles(models.Model):
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
-        Genres,
+        Genre,
         on_delete=models.SET_DEFAULT,
         default='Жанр не указан'
     )
-    title = models.ForeignKey(Titles, on_delete=models.CASCADE)
+    title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.genre} {self.title}'
@@ -113,7 +113,7 @@ class GenreTitle(models.Model):
 
 class Review(models.Model):
     title = models.ForeignKey(
-        Titles,
+        Title,
         on_delete=models.CASCADE,
         related_name='reviews',
     )

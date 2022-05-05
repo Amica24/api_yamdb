@@ -1,23 +1,26 @@
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from django.db.models import Avg
-from rest_framework.exceptions import MethodNotAllowed
 
-from reviews.models import Categories, Genres, Titles, User, Comment, Review
+from reviews.models import (
+    Category, Comment, Genre,
+    Review, Title, User
+)
 from .permissions import (
     IsAdmin, IsAdminOrReadOnly, ReviewComment
 )
 from .serializers import (
-    CategoriesSerializer, GenresSerializer, SignupSerializer,
-    TitlesGetSerializer, TitlesSerializer, TokenSerializer,
-    UserSerializer, CommentSerializer, ReviewSerializer,
+    CategorySerializer, CommentSerializer, GenreSerializer,
+    ReviewSerializer, SignupSerializer, TitleGetSerializer,
+    TitleSerializer, TokenSerializer, UserSerializer
 )
 
 
@@ -25,7 +28,7 @@ code_test = PasswordResetTokenGenerator()
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     permission_classes = (IsAuthenticated, IsAdmin)
     serializer_class = UserSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -34,7 +37,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False, methods=('GET', 'PATCH'),
-        url_path = 'me', permission_classes=(IsAuthenticated,)
+        url_path='me', permission_classes=(IsAuthenticated,)
     )
     def user_func(self, request):
         user = get_object_or_404(User, username=request.user.username)
@@ -60,7 +63,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class SingupViewSet(viewsets.ModelViewSet):
-    querryset = User.objects.all()
+    querryset = User.objects.all().order_by('id')
     permission_classes = (AllowAny,)
 
     def create(self, request):
@@ -103,7 +106,7 @@ class SingupViewSet(viewsets.ModelViewSet):
 
 
 class TokenViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by('id')
     permission_classes = (AllowAny,)
 
     def create(self, request):
@@ -134,9 +137,9 @@ class ListCreateDestroyViewSet(
     pass
 
 
-class CategoriesViewSet(ListCreateDestroyViewSet):
-    queryset = Categories.objects.all()
-    serializer_class = CategoriesSerializer
+class CategoryViewSet(ListCreateDestroyViewSet):
+    queryset = Category.objects.all().order_by('id')
+    serializer_class = CategorySerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
@@ -146,9 +149,9 @@ class CategoriesViewSet(ListCreateDestroyViewSet):
     lookup_field = 'slug'
 
 
-class GenresViewSet(ListCreateDestroyViewSet):
-    queryset = Genres.objects.all()
-    serializer_class = GenresSerializer
+class GenreViewSet(ListCreateDestroyViewSet):
+    queryset = Genre.objects.all().order_by('id')
+    serializer_class = GenreSerializer
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
@@ -158,14 +161,14 @@ class GenresViewSet(ListCreateDestroyViewSet):
     lookup_field = 'slug'
 
 
-class TitlesViewSet(viewsets.ModelViewSet):
+class TitleViewSet(viewsets.ModelViewSet):
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly
     ]
 
     def get_queryset(self):
-        queryset = Titles.objects.all().annotate(
+        queryset = Title.objects.all().annotate(
             Avg("reviews__score")
         ).order_by("name")
         genre_slug = self.request.query_params.get('genre')
@@ -184,9 +187,9 @@ class TitlesViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return TitlesGetSerializer
+            return TitleGetSerializer
         else:
-            return TitlesSerializer
+            return TitleSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -195,17 +198,18 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Titles, id=title_id)
+        title = get_object_or_404(Title, id=title_id)
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
-        return Comment.objects.filter(review_id=review.id)
+        return Comment.objects.filter(review_id=review.id).order_by('id')
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Titles, id=title_id)
+        title = get_object_or_404(Title, id=title_id)
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
         serializer.save(author=self.request.user, review_id=review.id)
+        return serializer.data
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -214,13 +218,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Titles, id=title_id)
-        return Review.objects.filter(title_id=title.id)
+        title = get_object_or_404(Title, id=title_id)
+        return Review.objects.filter(title_id=title.id).order_by('id')
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Titles, id=title_id)
+        title = get_object_or_404(Title, id=title_id)
         serializer.save(author=self.request.user, title_id=title.id)
+        return serializer.data
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
