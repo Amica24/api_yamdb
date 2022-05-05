@@ -209,7 +209,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
         serializer.save(author=self.request.user, review_id=review.id)
-        return serializer.data
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -225,7 +224,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         serializer.save(author=self.request.user, title_id=title.id)
-        return serializer.data
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
