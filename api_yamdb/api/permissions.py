@@ -20,7 +20,8 @@ class ReviewComment(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.action in ['list', 'retrieve']:
             return True
-        elif view.action in ['create', 'update', 'partial_update', 'destroy']:
+ #       elif view.action in ['create', 'update', 'partial_update', 'destroy']:
+        elif view.action in ['create', 'partial_update', 'destroy']:
             if not request.user.is_authenticated:
                 return False
             else:
@@ -38,7 +39,8 @@ class ReviewComment(permissions.BasePermission):
                 request.user.is_moderator,
             )
             return any(allowed)
-        elif view.action in ['update', 'partial_update', 'destroy']:
+ #       elif view.action in ['update', 'partial_update', 'destroy']:
+        elif view.action in ['partial_update', 'destroy']:
             allowed = (
                 obj.author == request.user,
                 request.user.is_admin,

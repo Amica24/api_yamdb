@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from django.db.models import Avg
+from rest_framework.exceptions import MethodNotAllowed
 
 from reviews.models import Categories, Genres, Titles, User, Comment, Review
 from .permissions import (
@@ -194,6 +195,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (ReviewComment,)
+ #   http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -205,16 +207,24 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Titles, id=title_id)
         serializer.save(author=self.request.user, title_id=title.id)
 
- #   def create(self, request, *args, **kwargs):
- #       serializer = self.get_serializer(data=request.data)
- #       serializer.is_valid(raise_exception=True)
- #       self.perform_create(serializer)
- #       headers = self.get_success_headers(serializer.data)
- #       if serializer.context.get('request').method != 'PUT':
- #           return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
- #       return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
- #   def update(self, request, *args, **kwargs):
+#    def create(self, request, *args, **kwargs):
+#        if self.request.method == 'PUT':
+#            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+#        serializer = self.get_serializer(data=request.data)
+#        serializer.is_valid(raise_exception=True)
+#        self.perform_create(serializer)
+#        headers = self.get_success_headers(serializer.data)
+# #       if serializer.context.get('request').method == 'PUT':
+# #           return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+#        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+#
+    def update(self, request, *args, **kwargs):
+   #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        if request.method == 'PUT':
+            raise MethodNotAllowed(method='PUT')
+        return super().update(request, *args, **kwargs)
+   #     if request.method == 'PUT':
+   #         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
  #       partial = kwargs.pop('partial', False)
  #       instance = self.get_object()
  #       serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -226,7 +236,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
  #           # forcibly invalidate the prefetch cache on the instance.
  #           instance._prefetched_objects_cache = {}
  #       
- #       if serializer.context.get('request').method != 'PUT':
- #           return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+ # #      if serializer.context.get('request').method == 'PUT':
+ # #          return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 #
  #       return Response(serializer.data)
