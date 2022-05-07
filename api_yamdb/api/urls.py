@@ -8,16 +8,17 @@ from .views import (
 )
 
 router = DefaultRouter()
+router_auth = DefaultRouter()
 
+router_auth.register(
+    'token', TokenViewSet, basename='tokens'
+)
+router_auth.register(
+    'signup', SingupViewSet, basename='signups'
+)
 
 router.register(
-    'auth/token', TokenViewSet, basename='Token'
-)
-router.register(
-    'auth/signup', SingupViewSet, basename='signup'
-)
-router.register(
-    'users', UserViewSet, basename='user_view'
+    'users', UserViewSet, basename='users'
 )
 router.register(
     r'categories', CategoryViewSet
@@ -39,6 +40,8 @@ router.register(
     basename='comments',
 )
 
+
 urlpatterns = [
-    path('', include(router.urls)),
+    path('v1/', include(router.urls)),
+    path('v1/auth/', include(router_auth.urls)),
 ]

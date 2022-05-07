@@ -18,38 +18,39 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        verbose_name='username',
+        verbose_name='Имя пользователя',
         validators=[RegexValidator(r'^[\w.@+-]+')]
     )
     email = models.EmailField(
         max_length=254,
         unique=True,
-        verbose_name='mail'
+        verbose_name='Эл. почта'
     )
     first_name = models.CharField(
         max_length=150,
         blank=True,
-        verbose_name='name'
+        verbose_name='Имя'
     )
     last_name = models.CharField(
         max_length=150,
         blank=True,
-        verbose_name='last_name'
+        verbose_name='Фамилия'
     )
     bio = models.TextField(
         blank=True,
-        verbose_name='bio'
+        verbose_name='Биография'
     )
     role = models.CharField(
-        max_length=10,
-        verbose_name='role',
+        max_length=100,
+        # max_length=max(list(map(len, (list(map(max, ROLES)))))),
+        verbose_name='Роли',
         default=USER,
         choices=ROLES,
     )
     confirmation_code = models.CharField(
         max_length=256,
         blank=True,
-        verbose_name='confirmation_code'
+        verbose_name='Код подтверждения'
     )
 
     REQUIRED_FIELDS = ['email']
@@ -65,6 +66,13 @@ class User(AbstractUser):
     @property
     def is_user(self):
         return self.role == USER
+
+    class Meta:
+        ordering = ('username',)
+
+    def __str__(self):
+        return self.username
+    
 
 
 class Category(models.Model):
