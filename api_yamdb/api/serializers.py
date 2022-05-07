@@ -159,7 +159,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate_score(self, value):
         if value < 1 or value > 10:
             raise serializers.ValidationError(
-                'Пожалуйста, только целые числа от 0 до 10'
+                'Пожалуйста, только целые числа от 1 до 10'
             )
         return value
 
