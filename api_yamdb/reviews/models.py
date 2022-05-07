@@ -1,5 +1,7 @@
-from django.db import models
+import datetime as dt
+
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -52,6 +54,9 @@ class User(AbstractUser):
         verbose_name='confirmation_code'
     )
 
+    class Meta:
+        ordering = ['id']
+
     REQUIRED_FIELDS = ['email']
 
     @property
@@ -68,32 +73,79 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(unique=True, max_length=50)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название категории'
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        verbose_name='Слаг категории'
+    )
+
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return self.name
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=256)
-    slug = models.SlugField(unique=True, max_length=50)
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название жанра'
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        verbose_name='Слаг жанра'
+    )
+
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return self.name
 
 
+def validate_year(value):
+    if value > dt.datetime.now().year:
+        raise ValidationError(
+            'Год выпуска не может быть больше текущего'
+        )
+    return value
+
+
 class Title(models.Model):
-    name = models.CharField('Название', max_length=256)
-    year = models.IntegerField('Год выпуска')
-    description = models.TextField('Описание', blank=True)
-    genre = models.ManyToManyField(Genre, through='GenreTitle')
+    name = models.CharField(
+        'Название',
+        max_length=256,
+        db_index=True
+    )
+    year = models.IntegerField(
+        'Год выпуска',
+        db_index=True,
+        validators=[validate_year]
+    )
+    description = models.TextField(
+        'Описание',
+        blank=True
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        verbose_name='Жанр произведения'
+    )
     category = models.ForeignKey(
         Category,
         related_name='title',
+        verbose_name='Категория произведения',
         on_delete=models.SET_DEFAULT,
         default='Категория не указана',
     )
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -102,10 +154,15 @@ class Title(models.Model):
 class GenreTitle(models.Model):
     genre = models.ForeignKey(
         Genre,
+        verbose_name='Жанр',
         on_delete=models.SET_DEFAULT,
         default='Жанр не указан'
     )
-    title = models.ForeignKey(Title, on_delete=models.CASCADE)
+    title = models.ForeignKey(
+        Title,
+        verbose_name='Произведение',
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
         return f'{self.genre} {self.title}'
@@ -134,6 +191,7 @@ class Review(models.Model):
             fields=['title', 'author'],
             name='unique_review',
         )]
+        ordering = ['id']
 
 
 class Comment(models.Model):
@@ -149,6 +207,9 @@ class Comment(models.Model):
         related_name='comments',
     )
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return self.text

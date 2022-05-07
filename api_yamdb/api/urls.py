@@ -20,10 +20,10 @@ router.register(
     'users', UserViewSet, basename='user_view'
 )
 router.register(
-    r'categories', CategoryViewSet
+    r'categories', CategoryViewSet, basename='categories'
 )
 router.register(
-    r'genres', GenreViewSet
+    r'genres', GenreViewSet, basename='genres'
 )
 router.register(
     r'titles', TitleViewSet, basename='titles'
@@ -40,5 +40,5 @@ router.register(
 )
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('v1/', include(router.urls)),
 ]
