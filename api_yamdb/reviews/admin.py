@@ -1,8 +1,22 @@
 from django.contrib import admin
 
-from .models import Categories, Genres, Titles
+from .models import (
+    Category, Comment, Genre,
+    Review, Title, User
+)
 
 
-admin.site.register(Categories)
-admin.site.register(Genres)
-admin.site.register(Titles)
+admin.site.register(Category)
+admin.site.register(Genre)
+admin.site.register(Title)
+admin.site.register(Comment)
+admin.site.register(Review)
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'username', 'first_name',
+        'last_name', 'email',
+        'role'
+    )
