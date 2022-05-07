@@ -13,11 +13,11 @@ from rest_framework_simplejwt.tokens import AccessToken
 from .filters import TitleFilter
 from .mixins import ListCreateDestroyViewSet
 from reviews.models import (
-    Category, Comment, Genre,
+    Category, Genre,
     Review, Title, User
 )
 from .permissions import (
-    IsAdmin, IsAdminOrReadOnly, ReviewComment
+    IsAdmin, IsAdminOrReadOnly, IsAdminModerAuthorAuthenticatedOrReadOnly
 )
 from .serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
@@ -174,14 +174,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (ReviewComment,)
+    permission_classes = (IsAdminModerAuthorAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
-        return Comment.objects.filter(review_id=review.id)
+        return review.comments.all()
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
@@ -193,12 +193,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (ReviewComment,)
+    permission_classes = (IsAdminModerAuthorAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
-        return Review.objects.filter(title_id=title.id)
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
