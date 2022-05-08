@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -26,9 +27,6 @@ from .serializers import (
 )
 
 
-code_test = PasswordResetTokenGenerator()
-
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = (IsAuthenticated, IsAdmin)
@@ -41,7 +39,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False, methods=('GET', 'PATCH'),
         url_path='me', permission_classes=(IsAuthenticated,)
     )
-    def user_func(self, request):
+    def me(self, request):
         user = get_object_or_404(User, username=request.user.username)
 
         if request.method != 'PATCH':
@@ -54,10 +52,7 @@ class UserViewSet(viewsets.ModelViewSet):
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        if self.request.user.is_superuser:
-            serializer.save()
-        else:
-            serializer.save(role=user.role)
+        serializer.save(role=user.role)
         return Response(
             serializer.data,
             status=status.HTTP_200_OK
@@ -73,24 +68,7 @@ class SingupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email').lower()
-        try:
-            user = User.objects.get(
-                username=username,
-                email=email)
-        except User.DoesNotExist:
-            if User.objects.filter(username=username).exists():
-                return Response(
-                    'Username уже существует',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            if User.objects.filter(email=email).exists():
-                return Response(
-                    'Emial уже существует',
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            user = User.objects.create_user(username=username, email=email)
-        user.is_active = False
-        user.save()
+        user, created = User.objects.get_or_create(email=email, username=username)
         confirmation_code = (
             PasswordResetTokenGenerator().make_token(user)
         )
@@ -98,7 +76,7 @@ class SingupViewSet(viewsets.ModelViewSet):
         send_mail(
             'Ваш код подтверждения',
             message,
-            'api_yambd@example.com',
+            settings.EMAIL_FROM,
             (email, )
         )
         return Response(
@@ -112,6 +90,7 @@ class TokenViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
 
     def create(self, request):
+        code_test = PasswordResetTokenGenerator()
         serializer = TokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = get_object_or_404(
