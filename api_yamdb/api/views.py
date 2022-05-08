@@ -68,7 +68,10 @@ class SingupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email').lower()
-        user, created = User.objects.get_or_create(email=email, username=username)
+        user, created = User.objects.get_or_create(
+            email=email,
+            username=username
+        )
         confirmation_code = (
             PasswordResetTokenGenerator().make_token(user)
         )
