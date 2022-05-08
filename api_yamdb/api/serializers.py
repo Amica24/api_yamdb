@@ -2,6 +2,7 @@ import datetime as dt
 
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import (
     Category, Comment, Genre,
@@ -23,8 +24,12 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    email = serializers.EmailField()
+    username = serializers.CharField(
+        validators=(UniqueValidator(queryset=User.objects.all()),)
+    )
+    email = serializers.EmailField(
+        validators=(UniqueValidator(queryset=User.objects.all()),)
+    )
 
     class Meta:
         model = User
@@ -159,7 +164,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate_score(self, value):
         if value < 1 or value > 10:
             raise serializers.ValidationError(
-                'Пожалуйста, только целые числа от 0 до 10'
+                'Пожалуйста, только целые числа от 1 до 10'
             )
         return value
 
